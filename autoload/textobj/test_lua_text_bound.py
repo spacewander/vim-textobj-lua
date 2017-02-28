@@ -138,6 +138,27 @@ data['find_nearest_match'] = {
     },
 }
 
+# Don't deal with the case that cursor is inside a block comment
+buf['bypass_block_comment'] = """\
+function ip_to_number(ip)
+    --[[
+    function ip_to_number(ip)
+    ]]-- local s = 'function ip_to_number() return common.get_ip_long(ip) end'
+    --[[
+    return s end]]--
+end""".splitlines()
+data['bypass_block_comment'] = {
+    "cursor": (4, 20),
+    "exclude": {
+        "start": (1, 1),
+        "end": (7, 4)
+    },
+    "include": {
+        "start": (2, 1),
+        "end": (6, 21)
+    },
+}
+
 class TestLuaTextBound(unittest.TestCase):
     def run_case(self, case):
         cursor = data[case]['cursor']

@@ -2,6 +2,12 @@ import re
 
 start_pattern = re.compile('(^|(?<=\W))(local\s+)?function(\s+[\w_]+)*\([^)]*\)')
 end_pattern = re.compile('(^|(?<=\W))end(?=($|\W))')
+single_quote = re.compile(r"(?<=[^\\])'(?:\\.|[^'\\])*'")
+double_quote = re.compile(r'(?<=[^\\])"(?:\\.|[^"\\])*"')
+line_comment = re.compile(r'(?<=[^\\])--.*$')
+
+def sub_matched_with_space(match):
+    return ' ' * (match.end(0)-match.start(0))
 
 def find_start_bound(buf, cursor, include):
     """
@@ -33,6 +39,10 @@ def find_start_bound(buf, cursor, include):
     return (lnum+1, col)
 
 def find_start_bound_per_line(line):
+    # use space as placeholder, so that we won't lose track of col
+    line = line_comment.sub(sub_matched_with_space, line)
+    line = single_quote.sub(sub_matched_with_space, line)
+    line = double_quote.sub(sub_matched_with_space, line)
     return start_pattern.search(line)
 
 
@@ -64,8 +74,12 @@ def find_end_bound(buf, cursor, include):
             # remain a space between start_bound and end_bound
             start = match.start(0)
     else:
+        # remove extra line break or whitespace behind 'end'
         start = match.end(0)+1
     return (lnum+1, start)
 
 def find_end_bound_per_line(line):
+    line = line_comment.sub(sub_matched_with_space, line)
+    line = single_quote.sub(sub_matched_with_space, line)
+    line = double_quote.sub(sub_matched_with_space, line)
     return end_pattern.search(line)

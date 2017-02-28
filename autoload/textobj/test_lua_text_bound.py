@@ -86,6 +86,40 @@ data['anonymous_func'] = {
     },
 }
 
+buf['line_comment'] = """\
+function ip_to_number(ip)
+    local s = ""-- function ip_to_number(ip)
+    return true -- function ip_to_number() return common.get_ip_long(ip) end
+    -- end
+\--end""".splitlines()
+data['line_comment'] = {
+    "cursor": (3, 2),
+    "exclude": {
+        "start": (1, 1),
+        "end": (5, 7)
+    },
+    "include": {
+        "start": (2, 1),
+        "end": (5, 3)
+    },
+}
+
+buf['inside_str'] = r"""function ip_to_number(ip)
+    local s = "function ip_to_number(ip)"
+    s =  'function ip_to_number() return common.get_ip_long(ip) end'
+    return \'end\' end""".splitlines()
+data['inside_str'] = {
+    "cursor": (3, 2),
+    "exclude": {
+        "start": (1, 1),
+        "end": (4, 17)
+    },
+    "include": {
+        "start": (2, 1),
+        "end": (4, 13)
+    },
+}
+
 class TestLuaTextBound(unittest.TestCase):
     def run_case(self, case):
         cursor = data[case]['cursor']

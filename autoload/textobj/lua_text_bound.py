@@ -1,5 +1,8 @@
 import re
 
+
+__all__ = ['find_start_bound', 'find_end_bound']
+
 start_pattern = re.compile('(^|(?<=\W))(local\s+)?function(\s+[\w_]+)*\([^)]*\)')
 end_pattern = re.compile('(^|(?<=\W))end(?=($|\W))')
 single_quote = re.compile(r"(?<=[^\\])'(?:\\.|[^'\\])*'")
@@ -43,7 +46,9 @@ def find_start_bound_per_line(line):
     line = line_comment.sub(sub_matched_with_space, line)
     line = single_quote.sub(sub_matched_with_space, line)
     line = double_quote.sub(sub_matched_with_space, line)
-    return start_pattern.search(line)
+    found = None
+    for found in start_pattern.finditer(line): pass
+    return found
 
 
 def find_end_bound(buf, cursor, include):

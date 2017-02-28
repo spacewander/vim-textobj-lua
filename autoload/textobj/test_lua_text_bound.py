@@ -120,6 +120,24 @@ data['inside_str'] = {
     },
 }
 
+buf['find_nearest_match'] = """\
+function ip_to_number(ip)
+    function ip_to_number(ip)
+    local s = 'function ip_to_number() return common.get_ip_long(ip) end'
+    return s end
+end""".splitlines()
+data['find_nearest_match'] = {
+    "cursor": (3, 2),
+    "exclude": {
+        "start": (2, 5),
+        "end": (4, 17)
+    },
+    "include": {
+        "start": (3, 1),
+        "end": (4, 13)
+    },
+}
+
 class TestLuaTextBound(unittest.TestCase):
     def run_case(self, case):
         cursor = data[case]['cursor']

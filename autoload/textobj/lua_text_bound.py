@@ -1,20 +1,25 @@
+import itertools
 import re
 
 
 __all__ = ['find_start_bound', 'find_end_bound']
 
-start_pattern = re.compile('(^|(?<=\W))(local\s+)?function(\s+[\w_]+)*\([^)]*\)')
+func_start = re.compile('(^|(?<=\W))(local\s+)?function(\s+[\w_]+)*\([^)]*\)')
 end_pattern = re.compile('(^|(?<=\W))end(?=($|\W))')
 single_quote = re.compile(r"(?<=[^\\])'(?:\\.|[^'\\])*'")
 double_quote = re.compile(r'(?<=[^\\])"(?:\\.|[^"\\])*"')
 line_comment = re.compile(r'(?<=[^\\])--.*$')
 block_comment_start = re.compile('--\[\[')
 block_comment_end = re.compile('\]\]--')
+if_start = re.compile('(^|(?<=\W))if.*\W+then(\s|$)')
+do_start = re.compile('(^|(?<=\W))(for|while).*\W+do(\s|$)')
+repeat_start = re.compile('(^|(?<=\W))repeat(\s|$)')
+until_end = re.compile('(^|(?<=\W))until\s.*$')
 
 def sub_matched_with_space(match):
     return ' ' * (match.end(0)-match.start(0))
 
-def find_start_bound(buf, cursor, include):
+def find_start_bound(buf, cursor, include, only_func):
     """
     :param buf: vim.buf object
     :param cursor: (lnum, col) indicates the position of current cursor
@@ -25,12 +30,13 @@ def find_start_bound(buf, cursor, include):
     lnum, col = cursor
     lnum -= 1
     cur_line = buf[lnum][:col]
-    match, in_block_comment = find_start_bound_per_line(cur_line)
+    match, in_block_comment = find_start_bound_per_line(cur_line, only_func)
     while match is None:
         lnum -= 1
         if lnum < 0:
             return None
-        match, still_in_block_comment = find_start_bound_per_line(buf[lnum], in_block_comment)
+        match, still_in_block_comment = find_start_bound_per_line(
+                buf[lnum], only_func, in_block_comment)
         if in_block_comment and still_in_block_comment:
             match = None
         in_block_comment = still_in_block_comment
@@ -46,7 +52,7 @@ def find_start_bound(buf, cursor, include):
         col = match.start(0)+1
     return (lnum+1, col)
 
-def find_start_bound_per_line(line, in_block_comment=False):
+def find_start_bound_per_line(line, only_func, in_block_comment=False):
     if in_block_comment:
         start_mark = block_comment_start.search(line)
         if not start_mark:
@@ -64,11 +70,22 @@ def find_start_bound_per_line(line, in_block_comment=False):
     line = single_quote.sub(sub_matched_with_space, line)
     line = double_quote.sub(sub_matched_with_space, line)
     found = None
-    for found in start_pattern.finditer(line): pass
+    if only_func:
+        for found in func_start.finditer(line): pass
+    else:
+        if_it = if_start.finditer(line)
+        do_it = do_start.finditer(line)
+        func_it = func_start.finditer(line)
+        repeat_it = repeat_start.finditer(line)
+        for groups in itertools.izip_longest(
+                if_it, do_it, func_it, repeat_it, fillvalue=None):
+            for found in groups:
+                if found:
+                    return (found, in_block_comment)
     return (found, in_block_comment)
 
 
-def find_end_bound(buf, cursor, include):
+def find_end_bound(buf, cursor, include, only_func):
     """
     :param buf: vim.buf object
     :param cursor: (lnum, col) indicates the position of current cursor
@@ -79,14 +96,15 @@ def find_end_bound(buf, cursor, include):
     eof = len(buf)
     lnum, col = cursor
     lnum -= 1
-    match, in_block_comment = find_end_bound_per_line(buf[lnum])
+    match, in_block_comment = find_end_bound_per_line(buf[lnum], only_func)
     if match and match.start(0) < col:
         match = None
     while match is None:
         lnum += 1
         if lnum >= eof:
             return None
-        match, still_in_block_comment = find_end_bound_per_line(buf[lnum], in_block_comment)
+        match, still_in_block_comment = find_end_bound_per_line(
+                buf[lnum], only_func, in_block_comment)
         if in_block_comment and still_in_block_comment:
             match = None
         in_block_comment = still_in_block_comment
@@ -96,14 +114,13 @@ def find_end_bound(buf, cursor, include):
             lnum -= 1
             start = len(buf[lnum])+1
         else:
-            # remain a space between start_bound and end_bound
             start = match.start(0)
     else:
         # remove extra line break or whitespace behind 'end'
         start = match.end(0)+1
     return (lnum+1, start)
 
-def find_end_bound_per_line(line, in_block_comment=False):
+def find_end_bound_per_line(line, only_func, in_block_comment=False):
     if in_block_comment:
         end_mark = block_comment_end.search(line)
         if not end_mark:
@@ -119,4 +136,11 @@ def find_end_bound_per_line(line, in_block_comment=False):
     line = line_comment.sub(sub_matched_with_space, line)
     line = single_quote.sub(sub_matched_with_space, line)
     line = double_quote.sub(sub_matched_with_space, line)
-    return (end_pattern.search(line), in_block_comment)
+    if only_func:
+        return (end_pattern.search(line), in_block_comment)
+    else:
+        # end_bound may not match start bound if the syntax is incorrect
+        found = until_end.search(line)
+        if not found:
+            found = end_pattern.search(line)
+        return (found, in_block_comment)

@@ -24,6 +24,23 @@ data['normal'] = {
     },
 }
 
+buf['keep_indent'] = """\
+    function ip_to_number(ip)
+        local s = ""
+        return common.get_ip_long(ip)
+    end""".splitlines()
+data['keep_indent'] = {
+    "cursor": (2, 2),
+    "exclude": {
+        "start": (1, 5),
+        "end": (4, 8)
+    },
+    "include": {
+        "start": (2, 1),
+        "end": (3, 38)
+    },
+}
+
 buf['oneline'] = """\
  function ip_to_number(ip) return common.get_ip_long(ip) end  """.splitlines()
 data['oneline'] = {
@@ -34,7 +51,7 @@ data['oneline'] = {
     },
     "include": {
         "start": (1, 27),
-        "end": (1, 57)
+        "end": (1, 56)
     },
 }
 
@@ -189,7 +206,7 @@ data['if_oneline'] = {
     },
     "include": {
         "start": (1, 17),
-        "end": (1, 46)
+        "end": (1, 45)
     },
 }
 
@@ -220,7 +237,7 @@ data['for_oneline'] = {
     },
     "include": {
         "start": (1, 26),
-        "end": (1, 55)
+        "end": (1, 54)
     },
 }
 
@@ -251,7 +268,7 @@ data['while_oneline'] = {
     },
     "include": {
         "start": (1, 16),
-        "end": (1, 45)
+        "end": (1, 44)
     },
 }
 
@@ -284,7 +301,7 @@ data['repeat_oneline'] = {
     },
     "include": {
         "start": (1, 9),
-        "end": (1, 38)
+        "end": (1, 37)
     },
 }
 

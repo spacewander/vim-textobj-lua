@@ -5,7 +5,7 @@ import re
 __all__ = ['find_start_bound', 'find_end_bound']
 
 func_start = re.compile('(^|(?<=\W))(local\s+)?function(\s+[\w_]+)*\([^)]*\)')
-end_pattern = re.compile('(^|(?<=\W))end(?=($|\W))')
+end_pattern = re.compile('(^|(?<=\W))\s*end(?=($|\W))')
 single_quote = re.compile(r"(?<=[^\\])'(?:\\.|[^'\\])*'")
 double_quote = re.compile(r'(?<=[^\\])"(?:\\.|[^"\\])*"')
 line_comment = re.compile(r'(?<=[^\\])--.*$')
@@ -14,7 +14,7 @@ block_comment_end = re.compile('\]\]--')
 if_start = re.compile('(^|(?<=\W))if.*\W+then(\s|$)')
 do_start = re.compile('(^|(?<=\W))(for|while).*\W+do(\s|$)')
 repeat_start = re.compile('(^|(?<=\W))repeat(\s|$)')
-until_end = re.compile('(^|(?<=\W))until\s.*$')
+until_end = re.compile('(^|(?<=\W))\s*until\s.*$')
 
 def sub_matched_with_space(match):
     return ' ' * (match.end(0)-match.start(0))

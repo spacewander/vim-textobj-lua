@@ -11,8 +11,8 @@ double_quote = re.compile(r'(?<=[^\\])"(?:\\.|[^"\\])*"')
 line_comment = re.compile(r'(?<=[^\\])--.*$')
 block_comment_start = re.compile('--\[\[')
 block_comment_end = re.compile('\]\]--')
-if_start = re.compile('(^|(?<=\W))if.*\W+then(\s|$)')
-do_start = re.compile('(^|(?<=\W))(for|while).*\W+do(\s|$)')
+if_start = re.compile('(^|(?<=\W))if\W+.*\W+then(\s|$)')
+do_start = re.compile('(^|(?<=\W))(for|while)\W+.*\W+do(\s|$)')
 repeat_start = re.compile('(^|(?<=\W))repeat(\s|$)')
 until_end = re.compile('(^|(?<=\W))\s*until\s.*$')
 
@@ -30,16 +30,33 @@ def find_start_bound(buf, cursor, include, only_func):
     lnum, col = cursor
     lnum -= 1
     cur_line = buf[lnum][:col]
+    level = 1
     match, in_block_comment = find_start_bound_per_line(cur_line, only_func)
-    while match is None:
+    if match:
+        level -= 1
+    elif not in_block_comment:
+        # Is function only or not doesn't matter when we identify nested block.
+        # And we always consider the Lua syntax is valid.
+        end_mark, _ = find_end_bound_per_line(
+                buf[lnum], False, False)
+        if end_mark is not None:
+            level += 1
+    while level > 0:
         lnum -= 1
         if lnum < 0:
             return None
         match, still_in_block_comment = find_start_bound_per_line(
-                buf[lnum], only_func, in_block_comment)
+                buf[lnum], False if level > 1 else only_func, in_block_comment)
         if in_block_comment and still_in_block_comment:
             match = None
         in_block_comment = still_in_block_comment
+        if not in_block_comment and not match:
+            end_mark, _ = find_end_bound_per_line(
+                    buf[lnum], False, False)
+            if end_mark is not None:
+                level += 1
+        if match:
+            level -= 1
     if include:
         if match.end(0) == len(buf[lnum]):
             # start from the next line if we match the end of line
@@ -73,6 +90,9 @@ def find_start_bound_per_line(line, only_func, in_block_comment=False):
     if only_func:
         for found in func_start.finditer(line): pass
     else:
+        # Unless merging all start pattern together, we could not get the nearest
+        # start pattern all the time. IMHO, find all pattern in parallel is ok at most.
+        # It works on if..for..if and for..if..if, but doesn't work on if..if..for
         if_it = if_start.finditer(line)
         do_it = do_start.finditer(line)
         func_it = func_start.finditer(line)
@@ -96,18 +116,26 @@ def find_end_bound(buf, cursor, include, only_func):
     eof = len(buf)
     lnum, col = cursor
     lnum -= 1
+    level = 1
     match, in_block_comment = find_end_bound_per_line(buf[lnum], only_func)
-    if match and match.start(0) < col:
-        match = None
-    while match is None:
+    if match and match.start(0) >= col:
+        level -= 1
+    while level > 0:
         lnum += 1
         if lnum >= eof:
             return None
         match, still_in_block_comment = find_end_bound_per_line(
-                buf[lnum], only_func, in_block_comment)
+                buf[lnum], False if level > 1 else only_func, in_block_comment)
         if in_block_comment and still_in_block_comment:
             match = None
         in_block_comment = still_in_block_comment
+        if not in_block_comment and not match:
+            start_mark, _ = find_start_bound_per_line(
+                    buf[lnum], False, False)
+            if start_mark is not None:
+                level += 1
+        if match:
+            level -= 1
     if include:
         if  match.start(0) == 0:
             # start from the prev line if we match the start of line

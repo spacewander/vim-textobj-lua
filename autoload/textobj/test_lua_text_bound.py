@@ -305,6 +305,28 @@ data['repeat_oneline'] = {
     },
 }
 
+buf['nest'] = """\
+function ip_to_number(ip)
+    while true do
+    end
+    if a == 1 then
+    end s = 2
+    if a ~= 1 then
+    end
+    return common.get_ip_long(ip)
+end""".splitlines()
+data['nest'] = {
+    "cursor": (5, 11),
+    "exclude": {
+        "start": (1, 1),
+        "end": (9, 4)
+    },
+    "include": {
+        "start": (2, 1),
+        "end": (8, 34)
+    },
+}
+
 class TestLuaTextBound(unittest.TestCase):
     def run_case(self, case):
         cursor = data[case]['cursor']

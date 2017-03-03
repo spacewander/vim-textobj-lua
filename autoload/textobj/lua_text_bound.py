@@ -4,17 +4,23 @@ import re
 
 __all__ = ['find_start_bound', 'find_end_bound']
 
-func_start = re.compile('(^|(?<=\W))(local\s+)?function(\s+[\w_]+)*\([^)]*\)')
-end_pattern = re.compile('(^|(?<=\W))\s*end(?=($|\W))')
+_func_start = '(local\s+)?function(\s+\w+)?\([^)]*\)'
+func_start = re.compile('(^|(?<=\W))%s' % _func_start)
+# keep a space before end pattern
+_block_end = '\s*end(?=($|\W))'
+func_end = re.compile('(^|(?<=\W))%s' % _block_end)
 single_quote = re.compile(r"(?<=[^\\])'(?:\\.|[^'\\])*'")
 double_quote = re.compile(r'(?<=[^\\])"(?:\\.|[^"\\])*"')
 line_comment = re.compile(r'(?<=[^\\])--.*$')
 block_comment_start = re.compile('--\[\[')
 block_comment_end = re.compile('\]\]--')
-if_start = re.compile('(^|(?<=\W))if\W+.*\W+then(\s|$)')
-do_start = re.compile('(^|(?<=\W))(for|while)\W+.*\W+do(\s|$)')
-repeat_start = re.compile('(^|(?<=\W))repeat(\s|$)')
-until_end = re.compile('(^|(?<=\W))\s*until\s.*$')
+_if_start = 'if\W+.*\W+then(\s|$)'
+_do_start = '(for|while)\W+.*\W+do(\s|$)'
+_repeat_start = 'repeat(\s|$)'
+block_start = re.compile('(^|(?<=\W))(%s|%s|%s|%s)' % (_func_start, _if_start,
+                                                       _do_start, _repeat_start))
+_until_end = '\s*until\s.*$'
+block_end = re.compile('(^|(?<=\W))(%s|%s)' % (_until_end, _block_end))
 
 def sub_matched_with_space(match):
     return ' ' * (match.end(0)-match.start(0))
@@ -30,33 +36,20 @@ def find_start_bound(buf, cursor, include, only_func):
     lnum, col = cursor
     lnum -= 1
     cur_line = buf[lnum][:col]
-    level = 1
-    match, in_block_comment = find_start_bound_per_line(cur_line, only_func)
-    if match:
-        level -= 1
-    elif not in_block_comment:
-        # Is function only or not doesn't matter when we identify nested block.
-        # And we always consider the Lua syntax is valid.
-        end_mark, _ = find_end_bound_per_line(
-                buf[lnum], False, False)
-        if end_mark is not None:
-            level += 1
+    # 0 <- found!
+    # if .. then
+    #   1
+    #   if then -1
+    #       2 if then 3 end 2 +0
+    #   end     +1
+    #   1 <- start from here
+    match, in_block_comment, level = find_start_bound_per_line(cur_line, only_func, level=1)
     while level > 0:
         lnum -= 1
         if lnum < 0:
             return None
-        match, still_in_block_comment = find_start_bound_per_line(
-                buf[lnum], False if level > 1 else only_func, in_block_comment)
-        if in_block_comment and still_in_block_comment:
-            match = None
-        in_block_comment = still_in_block_comment
-        if not in_block_comment and not match:
-            end_mark, _ = find_end_bound_per_line(
-                    buf[lnum], False, False)
-            if end_mark is not None:
-                level += 1
-        if match:
-            level -= 1
+        match, in_block_comment, level = find_start_bound_per_line(
+                buf[lnum], False if level > 1 else only_func, in_block_comment, level)
     if include:
         if match.end(0) == len(buf[lnum]):
             # start from the next line if we match the end of line
@@ -69,40 +62,42 @@ def find_start_bound(buf, cursor, include, only_func):
         col = match.start(0)+1
     return (lnum+1, col)
 
-def find_start_bound_per_line(line, only_func, in_block_comment=False):
+def find_start_bound_per_line(line, only_func, in_block_comment=False, level=1):
     if in_block_comment:
         start_mark = block_comment_start.search(line)
         if not start_mark:
-            return None, True
+            # still in block comment, ignore anything
+            return None, True, level
         else:
-            line = line[:start_mark.start(0)]
+            # blah blah --[[ blah blah
+            padding = ' '*(len(line)-start_mark.start(0)+1)
+            line = line[:start_mark.start(0)] + padding
             in_block_comment = False
     else:
         end_mark = block_comment_end.search(line)
         if end_mark:
-            line = ' '*(end_mark.end(0)-1) + line[end_mark.end(0):]
+            # blah blah ]]-- blah blah
+            line = ' '*end_mark.end(0) + line[end_mark.end(0):]
             in_block_comment = True
     # use space as placeholder, so that we won't lose track of col
     line = line_comment.sub(sub_matched_with_space, line)
     line = single_quote.sub(sub_matched_with_space, line)
     line = double_quote.sub(sub_matched_with_space, line)
-    found = None
-    if only_func:
-        for found in func_start.finditer(line): pass
-    else:
-        # Unless merging all start pattern together, we could not get the nearest
-        # start pattern all the time. IMHO, find all pattern in parallel is ok at most.
-        # It works on if..for..if and for..if..if, but doesn't work on if..if..for
-        if_it = if_start.finditer(line)
-        do_it = do_start.finditer(line)
-        func_it = func_start.finditer(line)
-        repeat_it = repeat_start.finditer(line)
-        for groups in itertools.izip_longest(
-                if_it, do_it, func_it, repeat_it, fillvalue=None):
-            for found in groups:
-                if found:
-                    return (found, in_block_comment)
-    return (found, in_block_comment)
+
+    # we need to iterate from right to left
+    start_it = reversed([match for match in block_start.finditer(line)])
+    end_it = reversed([match for match in block_end.finditer(line)])
+    for pair in itertools.izip_longest(start_it, end_it):
+        start_found, end_found = pair
+        if not start_found:
+            level += 1
+        elif not end_found:
+            level -= 1
+            if level <= 0:
+                # find the first function start mark when level <= 0
+                if (not only_func) or (start_found.group(0)[-1] == ')'):
+                    return (start_found, in_block_comment, 0)
+    return (None, in_block_comment, level)
 
 
 def find_end_bound(buf, cursor, include, only_func):
@@ -116,26 +111,21 @@ def find_end_bound(buf, cursor, include, only_func):
     eof = len(buf)
     lnum, col = cursor
     lnum -= 1
-    level = 1
-    match, in_block_comment = find_end_bound_per_line(buf[lnum], only_func)
-    if match and match.start(0) >= col:
-        level -= 1
+    #   1 <- start from here
+    #   if then +1
+    #      2  if then 3 end 2
+    #   end -1
+    # end -1
+    # 0 <- found!
+    match, in_block_comment, level = find_end_bound_per_line(buf[lnum],
+            only_func, start_col=col, level=1)
     while level > 0:
         lnum += 1
         if lnum >= eof:
             return None
-        match, still_in_block_comment = find_end_bound_per_line(
-                buf[lnum], False if level > 1 else only_func, in_block_comment)
-        if in_block_comment and still_in_block_comment:
-            match = None
-        in_block_comment = still_in_block_comment
-        if not in_block_comment and not match:
-            start_mark, _ = find_start_bound_per_line(
-                    buf[lnum], False, False)
-            if start_mark is not None:
-                level += 1
-        if match:
-            level -= 1
+        match, in_block_comment, level = find_end_bound_per_line(
+                buf[lnum], False if level > 1 else only_func,
+                in_block_comment, level=level)
     if include:
         if  match.start(0) == 0:
             # start from the prev line if we match the start of line
@@ -148,27 +138,41 @@ def find_end_bound(buf, cursor, include, only_func):
         start = match.end(0)+1
     return (lnum+1, start)
 
-def find_end_bound_per_line(line, only_func, in_block_comment=False):
+# mirror of find_start_bound_per_line
+def find_end_bound_per_line(line, only_func, in_block_comment=False,
+        start_col=0, level=1):
     if in_block_comment:
         end_mark = block_comment_end.search(line)
         if not end_mark:
-            return None, True
+            return None, True, level
         else:
-            line = ' '*(end_mark.end(0)-1) + line[end_mark.end(0):]
+            line = ' '*end_mark.end(0) + line[end_mark.end(0):]
             in_block_comment = False
     else:
         start_mark = block_comment_start.search(line)
         if start_mark:
-            line = line[:start_mark.start(0)]
+            padding = ' '*(len(line)-start_mark.start(0)+1)
+            line = line[:start_mark.start(0)] + padding
             in_block_comment = True
     line = line_comment.sub(sub_matched_with_space, line)
     line = single_quote.sub(sub_matched_with_space, line)
     line = double_quote.sub(sub_matched_with_space, line)
-    if only_func:
-        return (end_pattern.search(line), in_block_comment)
-    else:
-        # end_bound may not match start bound if the syntax is incorrect
-        found = until_end.search(line)
-        if not found:
-            found = end_pattern.search(line)
-        return (found, in_block_comment)
+    if start_col != 0:
+        line = ' '*start_col +  line[start_col:]
+
+    start_it = block_start.finditer(line)
+    end_it = block_end.finditer(line)
+    for pair in itertools.izip_longest(start_it, end_it):
+        start_found, end_found = pair
+        if not start_found:
+            level -= 1
+            if level <= 0:
+                if only_func:
+                    match = end_found.group(0).lstrip()
+                    # match '\s*until'?
+                    if match[0] == 'u':
+                        continue
+                return (end_found, in_block_comment, 0)
+        elif not end_found:
+            level += 1
+    return (None, in_block_comment, level)

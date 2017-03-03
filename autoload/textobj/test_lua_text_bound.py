@@ -316,6 +316,7 @@ function ip_to_number(ip)
     return common.get_ip_long(ip)
 end""".splitlines()
 data['nest'] = {
+    "only_func": False,
     "cursor": (5, 11),
     "exclude": {
         "start": (1, 1),
@@ -326,6 +327,38 @@ data['nest'] = {
         "end": (8, 34)
     },
 }
+
+nest_oneline = """\
+function function ip_to_number(ip) while true do s end if a == 1 then end s = 2 if a ~= 1 then end return s end end"""
+buf['nest_oneline'] = nest_oneline.splitlines()
+data['nest_oneline'] = {
+    "only_func": False,
+    "cursor": (1, 77),
+    "exclude": {
+        "start": (1, 10),
+        "end": (1, 112)
+    },
+    "include": {
+        "start": (1, 35),
+        "end": (1, 108)
+    },
+}
+
+nest_oneline_only_func = """\
+function function ip_to_number(ip) while true do s end if a == 1 then end s = 2 if a ~= 1 then end return s end end"""
+buf['nest_oneline_only_func'] = nest_oneline_only_func.splitlines()
+data['nest_oneline_only_func'] = {
+    "cursor": (1, 77),
+    "exclude": {
+        "start": (1, 10),
+        "end": (1, 112)
+    },
+    "include": {
+        "start": (1, 35),
+        "end": (1, 108)
+    },
+}
+
 
 class TestLuaTextBound(unittest.TestCase):
     def run_case(self, case):

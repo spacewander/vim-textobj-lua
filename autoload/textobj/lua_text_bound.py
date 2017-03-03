@@ -12,8 +12,8 @@ func_end = re.compile('(^|(?<=\W))%s' % _block_end)
 single_quote = re.compile(r"(?<=[^\\])'(?:\\.|[^'\\])*'")
 double_quote = re.compile(r'(?<=[^\\])"(?:\\.|[^"\\])*"')
 line_comment = re.compile(r'(?<=[^\\])--.*$')
-block_comment_start = re.compile('--\[\[')
-block_comment_end = re.compile('\]\]--')
+block_comment_start = re.compile('--\[=*\[')
+block_comment_end = re.compile('\]=*\]--')
 _if_start = 'if\W+.*\W+then(\s|$)'
 _do_start = '(for|while)\W+.*\W+do(\s|$)'
 _repeat_start = 'repeat(\s|$)'

@@ -158,9 +158,9 @@ data['find_nearest_match'] = {
 # Don't deal with the case that cursor is inside a block comment
 buf['bypass_block_comment'] = """\
 function ip_to_number(ip)
-    --[[
+    --[===[
     function ip_to_number(ip)
-    ]]-- local s = 'function ip_to_number() return common.get_ip_long(ip) end'
+    ]===]-- local s = 'function ip_to_number() return common.get_ip_long(ip) end'
     --[[
     return s end]]--
 end""".splitlines()

@@ -1,0 +1,6 @@
+dist: trusty
+os: linux
+
+language: python
+script:
+  - python autoload/textobj/test_lua_text_bound.py

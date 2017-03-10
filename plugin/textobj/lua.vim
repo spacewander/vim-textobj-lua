@@ -18,4 +18,10 @@ call textobj#user#plugin('lua', {
       \   'select-i': 'if',
       \   'select-i-function': 'textobj#lua#i_func',
       \ },
+      \ 'condition': {
+      \   'select-a': 'ac',
+      \   'select-a-function': 'textobj#lua#a_cond',
+      \   'select-i': 'ic',
+      \   'select-i-function': 'textobj#lua#i_cond',
+      \ },
 \ })

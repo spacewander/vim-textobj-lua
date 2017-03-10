@@ -13,6 +13,7 @@ function ip_to_number(ip)
     return common.get_ip_long(ip)
 end""".splitlines()
 data['normal'] = {
+    "obj_type": "function",
     "cursor": (2, 2),
     "exclude": {
         "start": (1, 1),
@@ -30,6 +31,7 @@ buf['keep_indent'] = """\
         return common.get_ip_long(ip)
     end""".splitlines()
 data['keep_indent'] = {
+    "obj_type": "function",
     "cursor": (2, 2),
     "exclude": {
         "start": (1, 5),
@@ -44,6 +46,7 @@ data['keep_indent'] = {
 buf['oneline'] = """\
  function ip_to_number(ip) return common.get_ip_long(ip) end  """.splitlines()
 data['oneline'] = {
+    "obj_type": "function",
     "cursor": (1, 30),
     "exclude": {
         "start": (1, 2),
@@ -59,6 +62,7 @@ data['oneline'] = {
 buf['not_found'] = """\
 afunction ip_to_number(ip) return common.get_ip_long(ip)bend""".splitlines()
 data['not_found'] = {
+    "obj_type": "function",
     "cursor": (1, 30),
     "exclude": {
         "start": None,
@@ -76,6 +80,7 @@ buf['local_func'] = """\
     return common.get_ip_long(ip)
 end""".splitlines()
 data['local_func'] = {
+    "obj_type": "function",
     "cursor": (2, 2),
     "exclude": {
         "start": (1, 2),
@@ -92,6 +97,7 @@ callback(function ip_to_number(ip)
     return common.get_ip_long(ip)
 end)""".splitlines()
 data['anonymous_func'] = {
+    "obj_type": "function",
     "cursor": (2, 2),
     "exclude": {
         "start": (1, 10),
@@ -110,6 +116,7 @@ function ip_to_number(ip)
     -- end
 \--end""".splitlines()
 data['line_comment'] = {
+    "obj_type": "function",
     "cursor": (3, 2),
     "exclude": {
         "start": (1, 1),
@@ -126,6 +133,7 @@ buf['inside_str'] = r"""function ip_to_number(ip)
     s =  'function ip_to_number() return common.get_ip_long(ip) end'
     return \'end\' end""".splitlines()
 data['inside_str'] = {
+    "obj_type": "function",
     "cursor": (3, 2),
     "exclude": {
         "start": (1, 1),
@@ -144,6 +152,7 @@ function ip_to_number(ip)
     return s end
 end""".splitlines()
 data['find_nearest_match'] = {
+    "obj_type": "function",
     "cursor": (3, 2),
     "exclude": {
         "start": (2, 5),
@@ -165,6 +174,7 @@ function ip_to_number(ip)
     return s end]]--
 end""".splitlines()
 data['bypass_block_comment'] = {
+    "obj_type": "function",
     "cursor": (4, 20),
     "exclude": {
         "start": (1, 1),
@@ -184,7 +194,7 @@ else
     return common.get_ip_short(ip)
 end""".splitlines()
 data['if'] = {
-    "only_func": False,
+    "obj_type": 'block',
     "cursor": (2, 2),
     "exclude": {
         "start": (1, 1),
@@ -198,7 +208,7 @@ data['if'] = {
 buf['if_oneline'] = """\
  if a == b then return common.get_ip_long(ip) end""".splitlines()
 data['if_oneline'] = {
-    "only_func": False,
+    "obj_type": 'block',
     "cursor": (1, 30),
     "exclude": {
         "start": (1, 2),
@@ -215,7 +225,7 @@ for a, _ in pairs(b) do
     return common.get_ip_long(ip)
 end""".splitlines()
 data['for'] = {
-    "only_func": False,
+    "obj_type": 'block',
     "cursor": (2, 2),
     "exclude": {
         "start": (1, 1),
@@ -229,7 +239,7 @@ data['for'] = {
 buf['for_oneline'] = """\
  for a, _ in pairs(b) do return common.get_ip_long(ip) end""".splitlines()
 data['for_oneline'] = {
-    "only_func": False,
+    "obj_type": 'block',
     "cursor": (1, 30),
     "exclude": {
         "start": (1, 2),
@@ -246,7 +256,7 @@ while ture do
     return common.get_ip_long(ip)
 end""".splitlines()
 data['while'] = {
-    "only_func": False,
+    "obj_type": 'block',
     "cursor": (2, 2),
     "exclude": {
         "start": (1, 1),
@@ -260,7 +270,7 @@ data['while'] = {
 buf['while_oneline'] = """\
  while ture do return common.get_ip_long(ip) end""".splitlines()
 data['while_oneline'] = {
-    "only_func": False,
+    "obj_type": 'block',
     "cursor": (1, 30),
     "exclude": {
         "start": (1, 2),
@@ -278,7 +288,7 @@ repeat
 until a > 20
 if""".splitlines()
 data['repeat'] = {
-    "only_func": False,
+    "obj_type": 'block',
     "cursor": (2, 2),
     "exclude": {
         "start": (1, 1),
@@ -293,7 +303,7 @@ buf['repeat_oneline'] = """\
  repeat return common.get_ip_long(ip) until a > 20
 if """.splitlines()
 data['repeat_oneline'] = {
-    "only_func": False,
+    "obj_type": 'block',
     "cursor": (1, 30),
     "exclude": {
         "start": (1, 2),
@@ -316,7 +326,7 @@ function ip_to_number(ip)
     return common.get_ip_long(ip)
 end""".splitlines()
 data['nest'] = {
-    "only_func": False,
+    "obj_type": 'block',
     "cursor": (5, 11),
     "exclude": {
         "start": (1, 1),
@@ -332,7 +342,7 @@ nest_oneline = """\
 function function ip_to_number(ip) while true do s end if a == 1 then end s = 2 if a ~= 1 then end return s end end"""
 buf['nest_oneline'] = nest_oneline.splitlines()
 data['nest_oneline'] = {
-    "only_func": False,
+    "obj_type": 'block',
     "cursor": (1, 77),
     "exclude": {
         "start": (1, 10),
@@ -348,6 +358,7 @@ nest_oneline_only_func = """\
 function function ip_to_number(ip) while true do s end if a == 1 then end s = 2 if a ~= 1 then end return s end end"""
 buf['nest_oneline_only_func'] = nest_oneline_only_func.splitlines()
 data['nest_oneline_only_func'] = {
+    "obj_type": "function",
     "cursor": (1, 77),
     "exclude": {
         "start": (1, 10),
@@ -359,23 +370,118 @@ data['nest_oneline_only_func'] = {
     },
 }
 
+buf['if_condition'] = """\
+if xxxx == 2 then""".splitlines()
+data['if_condition'] = {
+    'obj_type': 'condition',
+    'cursor': (1, 6),
+    'exclude': {
+        'start': (1, 1),
+        'end': (1, 18)
+    },
+    'include': {
+        'start': (1, 4),
+        'end': (1, 13)
+    }
+}
+
+buf['for_condition'] = """\
+for xxxx == 2 do """.splitlines()
+data['for_condition'] = {
+    'obj_type': 'condition',
+    'cursor': (1, 6),
+    'exclude': {
+        'start': (1, 1),
+        'end': (1, 17)
+    },
+    'include': {
+        'start': (1, 5),
+        'end': (1, 14)
+    }
+}
+
+buf['while_condition'] = """\
+while(xxxx == 2)do """.splitlines()
+data['while_condition'] = {
+    'obj_type': 'condition',
+    'cursor': (1, 8),
+    'exclude': {
+        'start': (1, 1),
+        'end': (1, 19)
+    },
+    'include': {
+        'start': (1, 6),
+        'end': (1, 16)
+    }
+}
+
+buf['if_condition_multiline'] = """\
+if
+    xxxx == 2
+then""".splitlines()
+data['if_condition_multiline'] = {
+    'obj_type': 'condition',
+    'cursor': (2, 6),
+    'exclude': {
+        'start': (1, 1),
+        'end': (3, 5)
+    },
+    'include': {
+        'start': (2, 1),
+        'end': (2, 14)
+    }
+}
+
+buf['for_condition_multiline'] = """\
+for
+    xxxx == 2
+do """.splitlines()
+data['for_condition_multiline'] = {
+    'obj_type': 'condition',
+    'cursor': (2, 6),
+    'exclude': {
+        'start': (1, 1),
+        'end': (3, 3)
+    },
+    'include': {
+        'start': (2, 1),
+        'end': (2, 14)
+    }
+}
+
+buf['while_condition_multiline'] = """\
+while
+xxxx == 2
+    do """.splitlines()
+data['while_condition_multiline'] = {
+    'obj_type': 'condition',
+    'cursor': (2, 8),
+    'exclude': {
+        'start': (1, 1),
+        'end': (3, 7)
+    },
+    'include': {
+        'start': (2, 1),
+        'end': (3, 4)
+    }
+}
 
 class TestLuaTextBound(unittest.TestCase):
     def run_case(self, case):
         cursor = data[case]['cursor']
-        only_func = data[case].get('only_func', True)
+        obj_type = data[case]['obj_type']
         self.assertEqual(data[case]['exclude']['start'],
                          s_bound(buf[case], cursor,
-                                 include=False, only_func=only_func))
+                                 include=False, obj_type=obj_type))
         self.assertEqual(data[case]['exclude']['end'],
                          e_bound(buf[case], cursor,
-                                 include=False, only_func=only_func))
+                                 include=False, obj_type=obj_type))
         self.assertEqual(data[case]['include']['start'],
                          s_bound(buf[case], cursor,
-                                 include=True, only_func=only_func))
+                                 include=True, obj_type=obj_type))
         self.assertEqual(data[case]['include']['end'],
                          e_bound(buf[case], cursor,
-                                 include=True, only_func=only_func))
+                                 include=True, obj_type=obj_type))
 
 def build_test_lambda(case):
     return lambda self: TestLuaTextBound.run_case(self, case)

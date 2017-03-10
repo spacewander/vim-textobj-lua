@@ -1,6 +1,6 @@
 let s:lua_text_bound_path = expand('<sfile>:p:h')
 
-function! textobj#lua#block(is_include, only_func) abort
+function! textobj#lua#block(is_include, obj_type) abort
 python << EOF
 import sys
 import vim
@@ -10,15 +10,15 @@ import lua_text_bound
 
 
 inc = vim.eval('a:is_include') == 'i'
-of = vim.eval('a:only_func') == 'f'
+ot = vim.eval('a:obj_type')
 cb = vim.current.buffer
 cc = vim.current.window.cursor
 try:
-    start_pos = lua_text_bound.find_start_bound(cb, cc, inc, of)
+    start_pos = lua_text_bound.find_start_bound(cb, cc, inc, ot)
     if start_pos is None:
         raise Exception
     start_pos_str = "[0, %d, %d, 0]" % start_pos
-    end_pos = lua_text_bound.find_end_bound(cb, cc, inc, of)
+    end_pos = lua_text_bound.find_end_bound(cb, cc, inc, ot)
     if end_pos is None:
         raise Exception
     end_pos_str = "[0, %d, %d, 0]" % end_pos
@@ -30,17 +30,25 @@ EOF
 endfunction
 
 function! textobj#lua#a_block() abort
-    return textobj#lua#block('a', 'b')
+    return textobj#lua#block('a', 'block')
 endfunction
 
 function! textobj#lua#i_block() abort
-    return textobj#lua#block('i', 'b')
+    return textobj#lua#block('i', 'block')
 endfunction
 
 function! textobj#lua#a_func() abort
-    return textobj#lua#block('a', 'f')
+    return textobj#lua#block('a', 'function')
 endfunction
 
 function! textobj#lua#i_func() abort
-    return textobj#lua#block('i', 'f')
+    return textobj#lua#block('i', 'function')
+endfunction
+
+function! textobj#lua#a_cond() abort
+    return textobj#lua#block('a', 'condition')
+endfunction
+
+function! textobj#lua#i_cond() abort
+    return textobj#lua#block('i', 'condition')
 endfunction

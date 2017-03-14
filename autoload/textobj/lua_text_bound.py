@@ -4,7 +4,7 @@ import re
 
 __all__ = ['find_start_bound', 'find_end_bound']
 
-_func_start = '(local\s+)?function(\s+\w+)?\([^)]*\)'
+_func_start = '(local\s+)?function(\s+[\w.:]+)?\([^)]*\)'
 func_start = re.compile('(^|(?<=\W))%s' % _func_start)
 # keep a space before end pattern
 _block_end = '\s*end(?=($|\W))'

@@ -8,7 +8,7 @@ from lua_text_bound import find_end_bound as e_bound
 buf = {}
 data = {}
 buf['normal'] = """\
-function ip_to_number(ip)
+function ip.to_number(ip)
     local s = ""
     return common.get_ip_long(ip)
 end""".splitlines()
@@ -26,7 +26,7 @@ data['normal'] = {
 }
 
 buf['keep_indent'] = """\
-    function ip_to_number(ip)
+    function ip:to_number(ip)
         local s = ""
         return common.get_ip_long(ip)
     end""".splitlines()

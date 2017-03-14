@@ -1,0 +1,150 @@
+*textobj-lua.txt*	Some text objects for Lua
+
+CONTENTS					*textobj-lua-contents*
+
+Introduction		|textobj-lua-introduction|
+Mappings		|textobj-lua-mappings|
+Customizing		|textobj-lua-customizing|
+
+
+
+
+==============================================================================
+INTRODUCTION					*textobj-lua-introduction*
+
+*textobj-lua* is a Vim plugin provides text objects to select syntax regions
+in Lua code.
+
+For instance, if the content of a buffer as follows:
+(here "➤" means the current position of the cursor,
+>
+-- Process a
+function _M.process(a)
+    if a == 1 then
+        ➤-- do something
+    end
+end
+
+-- Next function block
+<
+|<Plug>(textobj-lua-block-a)| will select lines as follows:
+(here "|" indicates the selected line)
+>
+-- Process a
+function _M.process(a)
+    |if a == 1 then
+    |    -- do something
+    |end
+end
+
+-- Next function block
+<
+|<Plug>(textobj-block-i)| will select lines as follows:
+>
+-- Process a
+function _M.process(a)
+    if a == 1 then
+    |    -- do something
+    end
+end
+
+-- Next function block
+<
+More variants are also available. See |textobj-lua-mappings| for the
+details.
+
+
+Requirements:
+- |textobj-user| 0.3.8 or later (vimscript#2100)
+
+Latest version:
+https://github.com/spacewander/vim-textobj-lua
+
+Bug report:
+https://github.com/spacewander/vim-textobj-lua/issue
+
+------------------------------------------------------------------------------
+MAPPINGS					*textobj-lua-mappings*
+
+These key mappings are defined in Visual mode and Operator-pending mode.
+
+<Plug>(textobj-lua-block-a)			*<Plug>(textobj-lua-block-a)*
+                        Default:
+                        omap <buffer> al <Plug>(textobj-lua-block-a)
+                        xmap <buffer> al <Plug>(textobj-lua-block-a)
+
+                        Select a Lua block. More precisely, it selects lines
+                        belong to:
+                        - for...do...end block
+                        - if...then...end block
+                        - while...do...end block
+                        - repeat...until... block
+                        - function...end block
+
+                        See also |textobj-lua-introduction| for figures
+                        which describe what lines to be selected by this
+                        command.
+
+<Plug>(textobj-lua-block-i)			*<Plug>(textobj-lua-block-i)*
+                        Default:
+                        omap <buffer> il <Plug>(textobj-lua-block-i)
+                        xmap <buffer> il <Plug>(textobj-lua-block-i)
+
+                        Like |<Plug>(textobj-lua-block-a)|, but it doesn't
+                        include start and end marks.
+
+<Plug>(textobj-lua-function-a)                  *<Plug>(textobj-lua-function-a)*
+                        Default:
+                        omap <buffer> af <Plug>(textobj-lua-function-a)
+                        xmap <buffer> af <Plug>(textobj-lua-function-a)
+
+                        Select a Lua function.
+
+<Plug>(textobj-lua-function-i)                  *<Plug>(textobj-lua-function-i)*
+                        Default:
+                        omap <buffer> if <Plug>(textobj-lua-function-i)
+                        xmap <buffer> if <Plug>(textobj-lua-function-i)
+
+                        Like |<Plug>(textobj-lua-function-a)|, but it doesn't
+                        include function definition and end mark.
+
+<Plug>(textobj-lua-condition-a)                  *<Plug>(textobj-lua-condition-a)*
+                        Default:
+                        omap <buffer> ac <Plug>(textobj-lua-condition-a)
+                        xmap <buffer> ac <Plug>(textobj-lua-condition-a)
+
+                        Select a Lua condition region. More precisely, it selects
+                        words contains:
+                        - for...do
+                        - if...then
+                        - while...do
+
+<Plug>(textobj-lua-condition-i)                  *<Plug>(textobj-lua-condition-i)*
+                        Default:
+                        omap <buffer> ic <Plug>(textobj-lua-condition-i)
+                        xmap <buffer> ic <Plug>(textobj-lua-condition-i)
+
+                        Like |<Plug>(textobj-lua-condition-a)|, but it doesn't
+                        include start and end marks like 'for', 'if' and so on.
+
+
+==============================================================================
+CUSTOMIZING					*textobj-lua-customizing*
+
+This plugin will define the following key mappings in Visual mode and
+Operator-pending mode automatically. If you dislike the default mapping, you can
+redefine it in `.vimrc`:
+
+" Unmap the default,
+ounmap <buffer> al <Plug>(textobj-lua-block-a)
+ounmap <buffer> il <Plug>(textobj-lua-block-i)
+xunmap <buffer> al <Plug>(textobj-lua-block-a)
+xunmap <buffer> il <Plug>(textobj-lua-block-i)
+" ...and then define it with your favorite.
+omap <buffer> ab <Plug>(textobj-lua-block-a)
+omap <buffer> ib <Plug>(textobj-lua-block-i)
+xmap <buffer> ab <Plug>(textobj-lua-block-a)
+xmap <buffer> ib <Plug>(textobj-lua-block-i)
+
+==============================================================================
+vim:tw=78:ts=8:ft=help:norl:fen:fdl=0:fdm=marker:

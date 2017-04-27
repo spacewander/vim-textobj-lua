@@ -160,7 +160,7 @@ data['find_nearest_match'] = {
     },
     "include": {
         "start": (3, 1),
-        "end": (4, 13)
+        "end": (4, 12)
     },
 }
 
@@ -350,7 +350,7 @@ data['nest_oneline'] = {
     },
     "include": {
         "start": (1, 35),
-        "end": (1, 108)
+        "end": (1, 107)
     },
 }
 
@@ -366,7 +366,7 @@ data['nest_oneline_only_func'] = {
     },
     "include": {
         "start": (1, 35),
-        "end": (1, 108)
+        "end": (1, 107)
     },
 }
 
@@ -381,7 +381,7 @@ data['if_condition'] = {
     },
     'include': {
         'start': (1, 4),
-        'end': (1, 13)
+        'end': (1, 12)
     }
 }
 
@@ -396,7 +396,7 @@ data['for_condition'] = {
     },
     'include': {
         'start': (1, 5),
-        'end': (1, 14)
+        'end': (1, 13)
     }
 }
 
@@ -462,7 +462,7 @@ data['while_condition_multiline'] = {
     },
     'include': {
         'start': (2, 1),
-        'end': (3, 4)
+        'end': (3, 3)
     }
 }
 

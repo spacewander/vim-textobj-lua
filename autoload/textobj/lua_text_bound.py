@@ -143,12 +143,13 @@ def find_end_bound(buf, cursor, include, obj_type):
                 buf[lnum], obj_type,
                 in_block_comment, level=level)
     if include:
-        if  match.start(0) == 0:
+        end = match.start(0)
+        if end == 0:
             # start from the prev line if we match the start of line
             lnum -= 1
             end = len(buf[lnum])+1
-        else:
-            end = match.start(0)
+        elif buf[lnum][end-1] == ' ':
+            end -= 1
     else:
         # remove extra line break or whitespace behind 'end'
         end = match.end(0)+1
